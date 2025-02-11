@@ -2,12 +2,7 @@ import os
 
 from .base import *  # noqa
 
-
-DEBUG = False
-
-ALLOWED_HOSTS = (
-    '*',
-)
+ALLOWED_HOSTS = ('*',)
 
 POSTGRES_NAME = os.getenv('POSTGRES_NAME')
 POSTGRES_USER = os.getenv('POSTGRES_USER')

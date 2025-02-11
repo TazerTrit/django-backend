@@ -2,7 +2,11 @@ from django.http import Http404, HttpRequest, HttpResponseBadRequest
 from ninja import Query, Router
 from ninja.security import django_auth
 
-from core.exceptions import CandidateDoesNotExist, NotFound, VacancyDoesNotExist
+from src.core.exceptions import (
+    CandidateDoesNotExist,
+    NotFound,
+    VacancyDoesNotExist,
+)
 from src.api.schemas import APIResponseSchema, ListPaginatedResponse
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.filters import JobSeekerFilters

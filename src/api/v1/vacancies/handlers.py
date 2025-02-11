@@ -1,14 +1,14 @@
 from django.http import HttpRequest, HttpResponseBadRequest
 from ninja import Query, Router
 
-from core.exceptions import ApplicationException
+from src.core.exceptions import ApplicationException
 from src.api.schemas import APIResponseSchema, ListPaginatedResponse
 from src.api.v1.profiles.jobseekers.schemas import JobSeekerProfileOut
 from src.apps.profiles.filters import JobSeekerFilters
 from src.apps.profiles.services.base import BaseJobSeekerService
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.filters import VacancyFilters
-from apps.vacancies.services.vacancy import BaseVacancyService
+from src.apps.vacancies.services.vacancy import BaseVacancyService
 from src.apps.vacancies.usecases.create_vacancy import CreateVacancyUseCase
 from src.apps.vacancies.usecases.filter_candidates import (
     FilterCandidatesInVacancyUseCase,

@@ -28,11 +28,11 @@ from src.apps.profiles.services.base import (
     BaseEmployerService,
     BaseJobSeekerService,
 )
-from apps.vacancies.services.vacancy import (
+from src.apps.vacancies.services.vacancy import (
     BaseVacancyService,
     ORMVacancyService,
 )
-from apps.vacancies.services.score import ScoreCalculator
+from src.apps.vacancies.services.score import ScoreCalculator
 
 
 class Container:

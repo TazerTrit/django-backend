@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.postgres.fields import ArrayField
 
-from apps.vacancies.entities import VacancyEntity
+from src.apps.vacancies.entities import VacancyEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile
 from src.apps.profiles.models.employers import EmployerProfile
 from src.common.models.base import TimedBaseModel
@@ -84,9 +84,7 @@ class Vacancy(TimedBaseModel):
             self.slug = slugify(self.title)
         if not self.slug:
             self.slug = self.id  # type: ignore
-        self.required_skills = [
-            skill.lower() for skill in self.required_skills
-        ]
+        self.required_skills = [skill.lower() for skill in self.required_skills]
         return super().save(*args, **kwargs)
 
     @classmethod

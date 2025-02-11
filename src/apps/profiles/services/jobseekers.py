@@ -3,7 +3,7 @@ from logging import Logger
 from typing import Iterable
 from django.db.models import Q
 
-from core.exceptions import CandidateDoesNotExist, NotFound
+from src.core.exceptions import CandidateDoesNotExist, NotFound
 from src.apps.vacancies.models import Vacancy
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile

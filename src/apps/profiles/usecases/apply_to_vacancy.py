@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from core.exceptions import CandidateDoesNotExist, NotFound, VacancyDoesNotExist
+from src.core.exceptions import (
+    CandidateDoesNotExist,
+    NotFound,
+    VacancyDoesNotExist,
+)
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.services.base import BaseVacancyService
 from src.common.services.base import BaseNotificationService

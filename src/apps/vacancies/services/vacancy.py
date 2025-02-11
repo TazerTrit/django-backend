@@ -4,7 +4,7 @@ from typing import Iterable
 
 from django.db.models import Q
 
-from core.exceptions import NotFound
+from src.core.exceptions import NotFound
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.services.jobseekers import ORMJobSeekerService
 from src.apps.profiles.services.employers import ORMEmployerService
@@ -128,7 +128,5 @@ class ORMVacancyService(BaseVacancyService):
         limit: int = 20,
     ) -> list[JobSeekerEntity]:
         vacancy = Vacancy.objects.get(id=vacancy_id)
-        candidates = vacancy.interested_candidates.filter(
-            offset=offset, limit=limit
-        )
+        candidates = vacancy.interested_candidates.all()[offset:limit]
         return [c.to_entity() for c in candidates]

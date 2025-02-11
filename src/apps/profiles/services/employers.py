@@ -3,7 +3,7 @@ from logging import Logger
 from typing import Iterable
 from django.db.models import Q
 
-from core.exceptions import NotFound
+from src.core.exceptions import NotFound
 from src.apps.profiles.entities.employers import EmployerEntity
 from src.apps.profiles.models.employers import EmployerProfile
 from src.apps.profiles.filters import EmployerFilter

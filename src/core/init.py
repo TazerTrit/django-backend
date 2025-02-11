@@ -16,16 +16,16 @@ class InitConfig(AppConfig):
 
         from src.common.services.base import BaseNotificationService
         from src.common.services.notifications import CeleryNotificationService
-        from src.common.container import Container
+        from src.common.container import container
 
-        logger = Container.resolve(Logger)
+        logger = container.resolve(Logger)
 
         # Init Celery worker
-        service = Container.resolve(BaseNotificationService)
+        service = container.resolve(BaseNotificationService)
         if service.__class__ == CeleryNotificationService:
             logger.info(
                 'Using Celery worker',
-                extra={'info': f'__class__: {service.__class__}'}
+                extra={'info': f'__class__: {service.__class__}'},
             )
             current_app.register_task(service)  # type: ignore
         else:
