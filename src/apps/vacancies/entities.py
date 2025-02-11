@@ -11,7 +11,8 @@ class VacancyEntity:
 
     employer: EmployerEntity | None = field(kw_only=True, default=None)
     interested_candidates: list[JobSeekerEntity] = field(
-        default_factory=list, kw_only=True,
+        default_factory=list,
+        kw_only=True,
     )
 
     title: str = ''
@@ -38,7 +39,7 @@ class VacancyEntity:
             'required_experience': self.required_experience,
             'required_skills': self.required_skills,
         }
-        if related:
+        if related and self.employer is not None:
             data['employer'] = self.employer.to_dict()
             data['interested_candidates'] = [
                 candidate.to_dict() for candidate in self.interested_candidates

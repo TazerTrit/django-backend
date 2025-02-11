@@ -3,10 +3,10 @@ from logging import Logger
 from typing import Iterable
 from django.db.models import Q
 
+from core.exceptions import NotFound
 from src.apps.profiles.entities.employers import EmployerEntity
 from src.apps.profiles.models.employers import EmployerProfile
 from src.apps.profiles.filters import EmployerFilter
-from src.common.services.exceptions import ServiceException
 
 from .base import BaseEmployerService
 
@@ -34,8 +34,8 @@ class ORMEmployerService(BaseEmployerService):
                 extra={'info': lookup_parameters},
             )
             if not message:
-                raise ServiceException(message='Profile not found')
-            raise ServiceException(message=message)
+                raise NotFound('Profile not found')
+            raise NotFound(message)
         return profile
 
     def _build_queryset(self, filters: EmployerFilter) -> Q:
@@ -48,9 +48,7 @@ class ORMEmployerService(BaseEmployerService):
         self, filters: EmployerFilter, offset: int, limit: int
     ) -> list[EmployerEntity]:
         query = self._build_queryset(filters)
-        employers = EmployerProfile.objects.filter(query)[
-            offset:offset+limit
-        ]
+        employers = EmployerProfile.objects.filter(query)[offset : offset + limit]
         return [employer.to_entity() for employer in employers]
 
     def get_total_count(self, filters: EmployerFilter) -> int:

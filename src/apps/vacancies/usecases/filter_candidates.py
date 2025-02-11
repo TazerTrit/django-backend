@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 
-from src.core.exceptions import ApplicationException
+from src.core.exceptions import VacancyDoesNotExist
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.services.base import BaseVacancyService
-from src.apps.vacancies.enums import VacancyCriteria
+from src.apps.vacancies.services.score import ScoreCalculator
 
 
 @dataclass(eq=False, repr=False, slots=True)
 class FilterCandidatesInVacancyUseCase:
     vacancy_service: BaseVacancyService
+    score_calculator: ScoreCalculator
 
     def _filter(
         self,
@@ -18,7 +19,7 @@ class FilterCandidatesInVacancyUseCase:
     ) -> list[JobSeekerEntity]:
         candidates: list[tuple[float, JobSeekerEntity]] = []
         for candidate in interested_candidates:
-            score = VacancyCriteria.get_candidate_rating(
+            score = self.score_calculator.get_candidate_rating(
                 candidate=candidate, vacancy=vacancy
             )
             candidates.append((score, candidate))
@@ -29,7 +30,8 @@ class FilterCandidatesInVacancyUseCase:
         return sorted_candidates
 
     def _sort_by_scores(
-        self, candidates: list[tuple[float, JobSeekerEntity]],
+        self,
+        candidates: list[tuple[float, JobSeekerEntity]],
     ) -> list[tuple[float, JobSeekerEntity]]:
         sorted_candidates_with_scores = sorted(
             candidates,
@@ -46,7 +48,7 @@ class FilterCandidatesInVacancyUseCase:
     ) -> list[JobSeekerEntity]:
         vacancy: VacancyEntity | None = self.vacancy_service.get(id=vacancy_id)
         if not vacancy:
-            raise ApplicationException(f'Vacancy with id "{vacancy_id}" not found')
+            raise VacancyDoesNotExist(vacancy_id)
         interested_candidates = self.vacancy_service.get_list_candidates(
             vacancy_id=vacancy_id,
             offset=offset,

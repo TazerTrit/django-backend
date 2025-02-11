@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from core.exceptions import CandidateDoesNotExist, NotFound, VacancyDoesNotExist
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.services.base import BaseVacancyService
 from src.common.services.base import BaseNotificationService
@@ -13,12 +14,15 @@ class ApplyToVacancyUseCase:
     def execute(self, candidate_id: int, vacancy_id: int) -> None:
         vacancy: VacancyEntity | None = self.vacancy_service.get(id=vacancy_id)
         if not vacancy:
-            raise Exception
+            raise VacancyDoesNotExist(vacancy_id)
 
-        self.vacancy_service.add_candidate(
-            candidate_id=candidate_id,
-            vacancy_id=vacancy_id,
-        )
+        try:
+            self.vacancy_service.add_candidate(
+                candidate_id=candidate_id,
+                vacancy_id=vacancy_id,
+            )
+        except NotFound:
+            raise CandidateDoesNotExist(candidate_id)
 
         employer = vacancy.employer
         self.notification_service.send_notification(

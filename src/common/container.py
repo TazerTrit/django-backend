@@ -16,18 +16,23 @@ from src.apps.profiles.services.employers import ORMEmployerService
 from src.apps.profiles.services.jobseekers import ORMJobSeekerService
 
 from src.apps.vacancies.usecases.create_vacancy import CreateVacancyUseCase
-from src.apps.vacancies.usecases.filter_candidates import FilterCandidatesInVacancyUseCase
+from src.apps.vacancies.usecases.filter_candidates import (
+    FilterCandidatesInVacancyUseCase,
+)
 
 from src.apps.profiles.usecases.apply_to_vacancy import ApplyToVacancyUseCase
-from src.apps.profiles.usecases.update_profile import UpdateJobSeekerProfileUseCase
+from src.apps.profiles.usecases.update_profile import (
+    UpdateJobSeekerProfileUseCase,
+)
 from src.apps.profiles.services.base import (
     BaseEmployerService,
     BaseJobSeekerService,
 )
-from src.apps.vacancies.services.vacancies import (
+from apps.vacancies.services.vacancy import (
     BaseVacancyService,
     ORMVacancyService,
 )
+from apps.vacancies.services.score import ScoreCalculator
 
 
 class Container:
@@ -84,6 +89,7 @@ class Container:
             BaseVacancyService,
             instance=orm_vacancy_service,
         )
+        container.register(ScoreCalculator, instance=ScoreCalculator())
 
         # Use Cases
         container.register(CreateVacancyUseCase)

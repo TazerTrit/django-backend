@@ -1,19 +1,21 @@
-from django.http import Http404, HttpRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from ninja import Query, Router
 
+from core.exceptions import ApplicationException
 from src.api.schemas import APIResponseSchema, ListPaginatedResponse
 from src.api.v1.profiles.jobseekers.schemas import JobSeekerProfileOut
 from src.apps.profiles.filters import JobSeekerFilters
 from src.apps.profiles.services.base import BaseJobSeekerService
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.filters import VacancyFilters
-from src.apps.vacancies.services.vacancies import BaseVacancyService
+from apps.vacancies.services.vacancy import BaseVacancyService
 from src.apps.vacancies.usecases.create_vacancy import CreateVacancyUseCase
-from src.apps.vacancies.usecases.filter_candidates import FilterCandidatesInVacancyUseCase
+from src.apps.vacancies.usecases.filter_candidates import (
+    FilterCandidatesInVacancyUseCase,
+)
 
 from src.common.container import container
 from src.common.filters.pagination import PaginationIn, PaginationOut
-from src.common.services.exceptions import ServiceException
 
 from .schemas import VacancyIn, VacancyOut
 
@@ -54,17 +56,18 @@ def get_vacancy_list(
 def create_vacancy(
     request: HttpRequest,
     vacancy_data: VacancyIn,
-) -> APIResponseSchema[VacancyOut]:
+) -> APIResponseSchema[VacancyOut] | HttpResponseBadRequest:
     usecase = container.resolve(CreateVacancyUseCase)
     data = vacancy_data.model_dump()
     employer_id = data.pop('employer_id')
     entity = VacancyEntity(**data)
     try:
         vacancy_entity = usecase.execute(
-            entity=entity, employer_id=employer_id,
+            entity=entity,
+            employer_id=employer_id,
         )
-    except ServiceException as e:
-        raise Http404(e)
+    except ApplicationException:
+        return HttpResponseBadRequest()
     return APIResponseSchema(data=VacancyOut.from_entity(vacancy_entity))
 
 

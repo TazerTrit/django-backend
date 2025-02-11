@@ -3,7 +3,7 @@ from logging import Logger
 from typing import Iterable
 from django.db.models import Q
 
-from src.common.services.exceptions import ServiceException
+from core.exceptions import CandidateDoesNotExist, NotFound
 from src.apps.vacancies.models import Vacancy
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile
@@ -35,8 +35,8 @@ class ORMJobSeekerService(BaseJobSeekerService):
                 extra={'info': lookup_parameters},
             )
             if not message:
-                raise ServiceException(message='Profile not found')
-            raise ServiceException(message=message)
+                raise NotFound('Profile not found')
+            raise NotFound(message)
         return profile
 
     def _build_queryset(self, filters: JobSeekerFilters) -> Q:
@@ -61,11 +61,11 @@ class ORMJobSeekerService(BaseJobSeekerService):
                 'interested_candidates'
             ).get(id=filters.vacancy_id)
             profile_list = vacancy.interested_candidates.filter(query)[
-                offset:offset+limit
+                offset : offset + limit
             ]
         else:
             profile_list = JobSeekerProfile.objects.filter(query)[
-                offset:offset+limit
+                offset : offset + limit
             ]
         return [profile.to_entity() for profile in profile_list]
 
@@ -73,7 +73,7 @@ class ORMJobSeekerService(BaseJobSeekerService):
         try:
             profile = self._get_model_or_raise_exception(id=id)
         except JobSeekerProfile.DoesNotExist:
-            raise ServiceException('profile not found')
+            raise CandidateDoesNotExist(id)
         return profile.to_entity()
 
     def get_all(

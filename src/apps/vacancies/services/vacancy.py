@@ -4,7 +4,7 @@ from typing import Iterable
 
 from django.db.models import Q
 
-from src.common.services.exceptions import ServiceException
+from core.exceptions import NotFound
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.services.jobseekers import ORMJobSeekerService
 from src.apps.profiles.services.employers import ORMEmployerService
@@ -38,8 +38,8 @@ class ORMVacancyService(BaseVacancyService):
                 vacancy = Vacancy.objects.get(**lookup_parameters)
         except Vacancy.DoesNotExist:
             if not message:
-                raise ServiceException(message='Vacancy not found')
-            raise ServiceException(message=message)
+                raise NotFound(f'Vacancy not found: {lookup_parameters}')
+            raise NotFound(message)
         return vacancy
 
     def _build_queryset(self, filters: VacancyFilters) -> Q:
@@ -50,9 +50,7 @@ class ORMVacancyService(BaseVacancyService):
         if filters.is_remote is not None:
             query &= Q(is_remote=filters.is_remote)
         if filters.required_experience__gte:
-            query &= Q(
-                required_experience__gte=filters.required_experience__gte
-            )
+            query &= Q(required_experience__gte=filters.required_experience__gte)
         if filters.required_skills:
             # ?Icontains does not work with ArrayField
             skills = [skill.lower() for skill in filters.required_skills]
@@ -76,7 +74,7 @@ class ORMVacancyService(BaseVacancyService):
         limit: int = 20,
     ) -> list[VacancyEntity]:
         query = self._build_queryset(filters=filters)
-        vacancy_list = Vacancy.objects.filter(query)[offset:offset+limit]
+        vacancy_list = Vacancy.objects.filter(query)[offset : offset + limit]
         return [vacancy.to_entity() for vacancy in vacancy_list]
 
     def get_total_count(self, filters: VacancyFilters) -> int:
@@ -130,5 +128,7 @@ class ORMVacancyService(BaseVacancyService):
         limit: int = 20,
     ) -> list[JobSeekerEntity]:
         vacancy = Vacancy.objects.get(id=vacancy_id)
-        candidates = vacancy.interested_candidates.filter(offset=offset, limit=limit)
+        candidates = vacancy.interested_candidates.filter(
+            offset=offset, limit=limit
+        )
         return [c.to_entity() for c in candidates]
