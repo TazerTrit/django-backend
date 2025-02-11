@@ -6,6 +6,10 @@ APP = app
 logs:
 	docker logs ${APP}
 
+.PHONY: up
+up:
+	docker compose up
+
 .PHONY: migrate
 migrate:
 	${EXEC} ${APP} ${MANAGE_PY} migrate

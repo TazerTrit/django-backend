@@ -1,4 +1,3 @@
-from functools import lru_cache
 from logging import Logger, getLogger
 from typing import Any
 
@@ -15,14 +14,12 @@ from src.common.services.notifications import (
 )
 from src.apps.profiles.services.employers import ORMEmployerService
 from src.apps.profiles.services.jobseekers import ORMJobSeekerService
-from src.apps.vacancies.use_cases.vacancies import (
-    CreateVacancyUseCase,
-    FilterCandidatesInVacancyUseCase,
-)
-from src.apps.profiles.use_cases.jobseekers import (
-    ApplyToVacancyUseCase,
-    UpdateJobSeekerProfileUseCase,
-)
+
+from src.apps.vacancies.usecases.create_vacancy import CreateVacancyUseCase
+from src.apps.vacancies.usecases.filter_candidates import FilterCandidatesInVacancyUseCase
+
+from src.apps.profiles.usecases.apply_to_vacancy import ApplyToVacancyUseCase
+from src.apps.profiles.usecases.update_profile import UpdateJobSeekerProfileUseCase
 from src.apps.profiles.services.base import (
     BaseEmployerService,
     BaseJobSeekerService,
@@ -31,18 +28,14 @@ from src.apps.vacancies.services.vacancies import (
     BaseVacancyService,
     ORMVacancyService,
 )
-from src.apps.vacancies.converters import ORMVacancyConverter
 
 
 class Container:
-    @lru_cache(1)
-    @staticmethod
-    def get():
-        return Container._init()
+    def __init__(self) -> None:
+        self.container = self._init()
 
-    @staticmethod
-    def resolve(base_cls) -> Any:
-        return Container.get().resolve(base_cls)
+    def resolve(self, base_cls) -> Any:
+        return self.container.resolve(base_cls)
 
     @staticmethod
     def _init():
@@ -83,7 +76,6 @@ class Container:
 
         # Vacancy Service
         orm_vacancy_service = ORMVacancyService(
-            converter=ORMVacancyConverter(),
             jobseeker_service=orm_jobseeker_service,
             employer_service=orm_employer_service,
             logger=lg,
@@ -100,3 +92,6 @@ class Container:
         container.register(UpdateJobSeekerProfileUseCase)
 
         return container
+
+
+container = Container()

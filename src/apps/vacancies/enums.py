@@ -5,10 +5,10 @@ from src.apps.vacancies.entities import VacancyEntity
 
 
 class VacancyCriteria(Enum):
-    REQUIRED_EXPERIENCE_SCORE: float = 7.0
-    INCR_IF_EXPERIENCE_HIGHER: bool = True
-    SKILL_IN_SCORE: float = 2.0
-    SKILL_NOT_IN_SCORE: float = 0.5
+    REQUIRED_EXPERIENCE_SCORE = 7.0
+    INCR_IF_EXPERIENCE_HIGHER = True
+    SKILL_IN_SCORE = 2.0
+    SKILL_NOT_IN_SCORE = 0.5
 
     @classmethod
     def calculate_score_from_experience(

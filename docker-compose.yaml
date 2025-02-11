@@ -48,20 +48,12 @@ services:
     build: .
     volumes:
       - .:/code/
-    command: ["./wait-for-it.sh", "db:5432", "--", "uwsgi",
-              "--ini", "/code/config/uwsgi/uwsgi.ini"]
+    command: python manage.py runserver 0.0.0.0:8000
     env_file:
       - .env
     depends_on:
       - db
       - message_broker
       - redis_cache
-
-  nginx:
-    container_name: nginx-1
-    image: nginx:1.23.1
-    volumes:
-      - ./config/nginx:/etc/nginx/templates
-      - .:/code
     ports:
-      - "80:80"
+      - 8000:8000

@@ -10,8 +10,7 @@ class BaseProfileService(BaseService):
 
 class BaseJobSeekerService(BaseProfileService):
     @abstractmethod
-    def update(self, id: int, **data) -> JobSeekerEntity:
-        ...
+    def update(self, entity: JobSeekerEntity) -> JobSeekerEntity: ...
 
     @abstractmethod
     def get_by_user_id(self, user_id: int) -> JobSeekerEntity:

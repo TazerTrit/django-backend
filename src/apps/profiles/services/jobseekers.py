@@ -5,7 +5,6 @@ from django.db.models import Q
 
 from src.common.services.exceptions import ServiceException
 from src.apps.vacancies.models import Vacancy
-from src.apps.profiles.converters.jobseekers import ORMJobSeekerConverter
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile
 from src.apps.profiles.filters import JobSeekerFilters
@@ -13,14 +12,13 @@ from src.apps.profiles.filters import JobSeekerFilters
 from .base import BaseJobSeekerService
 
 
-@dataclass
+@dataclass(eq=False, repr=False, slots=True)
 class ORMJobSeekerService(BaseJobSeekerService):
     logger: Logger
-    converter: ORMJobSeekerConverter = ORMJobSeekerConverter()
 
     def _get_model_or_raise_exception(
         self,
-        message: str = None,
+        message: str | None = None,
         related: bool = False,
         **lookup_parameters,
     ) -> JobSeekerProfile:
@@ -69,14 +67,14 @@ class ORMJobSeekerService(BaseJobSeekerService):
             profile_list = JobSeekerProfile.objects.filter(query)[
                 offset:offset+limit
             ]
-        return [self.converter.handle(profile) for profile in profile_list]
+        return [profile.to_entity() for profile in profile_list]
 
     def get(self, id: int) -> JobSeekerEntity | None:
         try:
             profile = self._get_model_or_raise_exception(id=id)
         except JobSeekerProfile.DoesNotExist:
             raise ServiceException('profile not found')
-        return self.converter.handle(profile)
+        return profile.to_entity()
 
     def get_all(
         self,
@@ -84,7 +82,7 @@ class ORMJobSeekerService(BaseJobSeekerService):
     ) -> Iterable[JobSeekerEntity]:
         query = self._build_queryset(filters=filters)
         for jobseeker in JobSeekerProfile.objects.filter(query):
-            yield self.converter.handle(jobseeker)
+            yield jobseeker.to_entity()
 
     def get_total_count(self, filters: JobSeekerFilters) -> int:
         query = self._build_queryset(filters)
@@ -97,11 +95,11 @@ class ORMJobSeekerService(BaseJobSeekerService):
                 if hasattr(profile, field):
                     setattr(profile, field, value)
         profile.save()
-        return self.converter.handle(profile)
+        return profile.to_entity()
 
     def get_by_user_id(self, user_id: int) -> JobSeekerEntity:
         profile = self._get_model_or_raise_exception(
             user_id=user_id,
             message=f"User with id '{user_id}' does not have profile",
         )
-        return self.converter.handle(profile)
+        return profile.to_entity()

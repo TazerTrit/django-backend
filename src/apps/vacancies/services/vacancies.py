@@ -4,7 +4,6 @@ from typing import Iterable
 
 from django.db.models import Q
 
-from src.common.converters.base import BaseConverter
 from src.common.services.exceptions import ServiceException
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 from src.apps.profiles.services.jobseekers import ORMJobSeekerService
@@ -16,10 +15,9 @@ from src.apps.vacancies.models import Vacancy
 from .base import BaseVacancyService
 
 
-@dataclass
+@dataclass(eq=False, repr=False, slots=True)
 class ORMVacancyService(BaseVacancyService):
     logger: Logger
-    converter: BaseConverter
     employer_service: ORMEmployerService
     jobseeker_service: ORMJobSeekerService
 
@@ -79,7 +77,7 @@ class ORMVacancyService(BaseVacancyService):
     ) -> list[VacancyEntity]:
         query = self._build_queryset(filters=filters)
         vacancy_list = Vacancy.objects.filter(query)[offset:offset+limit]
-        return [self.converter.handle(vacancy) for vacancy in vacancy_list]
+        return [vacancy.to_entity() for vacancy in vacancy_list]
 
     def get_total_count(self, filters: VacancyFilters) -> int:
         query = self._build_queryset(filters=filters)
@@ -92,12 +90,12 @@ class ORMVacancyService(BaseVacancyService):
             related=False,
             message=f"Vacancy with id '{id}' not found",
         )
-        return self.converter.handle(vacancy)
+        return vacancy.to_entity()
 
     def get_all(self, filters: VacancyFilters) -> Iterable[VacancyEntity]:
         query = self._build_queryset(filters=filters)
         for vacancy in Vacancy.objects.filter(query):
-            yield self.converter.handle(vacancy)
+            yield vacancy.to_entity()
 
     def create(
         self,
@@ -112,7 +110,7 @@ class ORMVacancyService(BaseVacancyService):
             if val is not None or field not in ['pk', 'id']:
                 setattr(new_vacancy, field, val)
         new_vacancy.save()
-        return self.converter.handle(new_vacancy)
+        return new_vacancy.to_entity()
 
     def add_candidate(self, vacancy_id: int, candidate_id: int) -> None:
         candidate = self.jobseeker_service._get_model_or_raise_exception(
@@ -132,5 +130,5 @@ class ORMVacancyService(BaseVacancyService):
         limit: int = 20,
     ) -> list[JobSeekerEntity]:
         vacancy = Vacancy.objects.get(id=vacancy_id)
-        candidates = vacancy.interested_candidates.all()[offset:limit]
-        return [self.jobseeker_service.converter.handle(c) for c in candidates]
+        candidates = vacancy.interested_candidates.filter(offset=offset, limit=limit)
+        return [c.to_entity() for c in candidates]

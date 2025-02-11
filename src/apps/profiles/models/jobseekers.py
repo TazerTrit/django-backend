@@ -39,7 +39,7 @@ class JobSeekerProfile(BaseProfile):
 
     def to_entity(self) -> JobSeekerEntity:
         return JobSeekerEntity(
-            id=self.id,
+            id=self.id,  # type: ignore
             first_name=self.first_name,
             last_name=self.last_name,
             email=self.email,
@@ -48,4 +48,18 @@ class JobSeekerProfile(BaseProfile):
             experience=self.experience,
             skills=self.skills,
             phone=self.phone,
+        )
+
+    @classmethod
+    def from_entity(cls, entity: JobSeekerEntity) -> 'JobSeekerProfile':
+        return cls(
+            id=entity.id,
+            first_name=entity.first_name,
+            last_name=entity.last_name,
+            email=entity.email,
+            age=entity.age,
+            about_me=entity.about_me,
+            experience=entity.experience,
+            skills=entity.skills,
+            phone=entity.phone,
         )

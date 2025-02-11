@@ -1,43 +1,17 @@
 from dataclasses import dataclass
 
 from src.core.exceptions import ApplicationException
-from src.common.services.base import BaseNotificationService
-from src.apps.profiles.filters import JobSeekerFilters
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
-from src.apps.profiles.services.base import BaseJobSeekerService
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.services.base import BaseVacancyService
 from src.apps.vacancies.enums import VacancyCriteria
 
 
-@dataclass
-class CreateVacancyUseCase:
-    vacancy_service: BaseVacancyService
-    jobseeker_service: BaseJobSeekerService
-    notification_service: BaseNotificationService
-
-    def execute(
-        self,
-        employer_id: int,
-        entity: VacancyEntity,
-    ) -> VacancyEntity:
-        new_vacancy = self.vacancy_service.create(
-            entity=entity, employer_id=employer_id
-        )
-        filters = JobSeekerFilters(allow_notifications=True)
-        jobseekers = self.jobseeker_service.get_all(filters=filters)
-        self.notification_service.send_notification_group(
-            message='New vacancy with skills that you have appeared!',
-            objects=jobseekers,
-        )
-        return new_vacancy
-
-
-@dataclass
+@dataclass(eq=False, repr=False, slots=True)
 class FilterCandidatesInVacancyUseCase:
     vacancy_service: BaseVacancyService
 
-    def filter(
+    def _filter(
         self,
         interested_candidates: list[JobSeekerEntity],
         vacancy: VacancyEntity,
@@ -78,7 +52,7 @@ class FilterCandidatesInVacancyUseCase:
             offset=offset,
             limit=limit,
         )
-        candidates = self.filter(
+        candidates = self._filter(
             interested_candidates=interested_candidates,
             vacancy=vacancy,
         )

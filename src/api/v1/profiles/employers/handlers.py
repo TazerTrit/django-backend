@@ -6,7 +6,7 @@ from src.api.schemas import APIResponseSchema, ListPaginatedResponse
 from src.api.v1.profiles.employers.schemas import EmployerProfileOut
 from src.apps.profiles.filters import EmployerFilter
 from src.apps.profiles.services.base import BaseEmployerService
-from src.common.container import Container
+from src.common.container import container
 from src.common.filters.pagination import PaginationIn, PaginationOut
 
 router = Router(tags=['employers'])
@@ -22,7 +22,7 @@ def get_employer_list(
     filters: Query[EmployerFilter],
     pagination_in: Query[PaginationIn],
 ) -> APIResponseSchema[ListPaginatedResponse[EmployerProfileOut]]:
-    service = Container.resolve(BaseEmployerService)
+    service = container.resolve(BaseEmployerService)
     profile_list = service.get_list(
         filters=filters,
         offset=pagination_in.offset,

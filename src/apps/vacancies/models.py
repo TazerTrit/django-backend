@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.postgres.fields import ArrayField
 
+from apps.vacancies.entities import VacancyEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile
 from src.apps.profiles.models.employers import EmployerProfile
 from src.common.models.base import TimedBaseModel
@@ -82,8 +83,44 @@ class Vacancy(TimedBaseModel):
         if not self.slug:
             self.slug = slugify(self.title)
         if not self.slug:
-            self.slug = self.id
+            self.slug = self.id  # type: ignore
         self.required_skills = [
             skill.lower() for skill in self.required_skills
         ]
         return super().save(*args, **kwargs)
+
+    @classmethod
+    def from_entity(cls, entity: VacancyEntity) -> 'Vacancy':
+        model = cls(
+            id=entity.id,
+            employer=entity.employer,
+            interested_candidates=entity.interested_candidates,
+            title=entity.title,
+            company_name=entity.company_name,
+            description=entity.description,
+            is_remote=entity.is_remote,
+            required_experience=entity.required_experience,
+            location=entity.location,
+            required_skills=entity.required_skills,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at,
+        )
+        return model
+
+    def to_entity(self) -> VacancyEntity:
+        candidates = self.interested_candidates.all()
+        entity = VacancyEntity(
+            id=self.id,  # type: ignore
+            employer=self.employer.to_entity(),
+            interested_candidates=[cand.to_entity() for cand in candidates],
+            title=self.title,
+            description=self.description,
+            company_name=self.company_name,
+            is_remote=self.is_remote,
+            required_experience=self.required_experience,
+            location=self.location,
+            required_skills=self.required_skills,
+            updated_at=self.updated_at,
+            created_at=self.created_at,
+        )
+        return entity

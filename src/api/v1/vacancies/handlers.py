@@ -8,10 +8,10 @@ from src.apps.profiles.services.base import BaseJobSeekerService
 from src.apps.vacancies.entities import VacancyEntity
 from src.apps.vacancies.filters import VacancyFilters
 from src.apps.vacancies.services.vacancies import BaseVacancyService
-from src.apps.vacancies.use_cases.vacancies import (
-    CreateVacancyUseCase, FilterCandidatesInVacancyUseCase,
-)
-from src.common.container import Container
+from src.apps.vacancies.usecases.create_vacancy import CreateVacancyUseCase
+from src.apps.vacancies.usecases.filter_candidates import FilterCandidatesInVacancyUseCase
+
+from src.common.container import container
 from src.common.filters.pagination import PaginationIn, PaginationOut
 from src.common.services.exceptions import ServiceException
 
@@ -26,7 +26,7 @@ def get_vacancy_list(
     pagination_in: Query[PaginationIn],
     filters: Query[VacancyFilters],
 ) -> APIResponseSchema[ListPaginatedResponse[VacancyOut]]:
-    service = Container.resolve(BaseVacancyService)
+    service = container.resolve(BaseVacancyService)
     vacancy_entity_list = service.get_list(
         offset=pagination_in.offset,
         limit=pagination_in.limit,
@@ -55,7 +55,7 @@ def create_vacancy(
     request: HttpRequest,
     vacancy_data: VacancyIn,
 ) -> APIResponseSchema[VacancyOut]:
-    usecase = Container.resolve(CreateVacancyUseCase)
+    usecase = container.resolve(CreateVacancyUseCase)
     data = vacancy_data.model_dump()
     employer_id = data.pop('employer_id')
     entity = VacancyEntity(**data)
@@ -77,8 +77,8 @@ def filter_candidates_in_vacancy(
     pagination_in: Query[PaginationIn],
     vacancy_id: int,
 ) -> APIResponseSchema[ListPaginatedResponse[JobSeekerProfileOut]]:
-    usecase = Container.resolve(FilterCandidatesInVacancyUseCase)
-    jobseeker_service = Container.resolve(BaseJobSeekerService)
+    usecase = container.resolve(FilterCandidatesInVacancyUseCase)
+    jobseeker_service = container.resolve(BaseJobSeekerService)
     total = jobseeker_service.get_total_count(
         filters=JobSeekerFilters(vacancy_id=vacancy_id)
     )

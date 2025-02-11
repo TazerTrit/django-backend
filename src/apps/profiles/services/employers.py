@@ -3,7 +3,6 @@ from logging import Logger
 from typing import Iterable
 from django.db.models import Q
 
-from src.apps.profiles.converters.employers import ORMEmployerConverter
 from src.apps.profiles.entities.employers import EmployerEntity
 from src.apps.profiles.models.employers import EmployerProfile
 from src.apps.profiles.filters import EmployerFilter
@@ -15,11 +14,10 @@ from .base import BaseEmployerService
 @dataclass
 class ORMEmployerService(BaseEmployerService):
     logger: Logger
-    converter: ORMEmployerConverter = ORMEmployerConverter()
 
     def _get_model_or_raise_exception(
         self,
-        message: str = None,
+        message: str | None = None,
         related: bool = False,
         **lookup_parameters,
     ) -> EmployerProfile:
@@ -53,9 +51,9 @@ class ORMEmployerService(BaseEmployerService):
         employers = EmployerProfile.objects.filter(query)[
             offset:offset+limit
         ]
-        return [self.converter.handle(employer) for employer in employers]
+        return [employer.to_entity() for employer in employers]
 
-    def get_total_count(self, filters: EmployerFilter) -> list[EmployerEntity]:
+    def get_total_count(self, filters: EmployerFilter) -> int:
         query = self._build_queryset(filters)
         total_count = EmployerProfile.objects.filter(query).count()
         return total_count
@@ -63,11 +61,11 @@ class ORMEmployerService(BaseEmployerService):
     def get_all(self, filters: EmployerFilter) -> Iterable[EmployerEntity]:
         query = self._build_queryset(filters)
         for employer in EmployerProfile.objects.filter(query):
-            yield employer
+            yield employer.to_entity()
 
     def get(self, id: int) -> EmployerEntity | None:
         try:
             employer = EmployerProfile.objects.get(id=id)
         except EmployerProfile.DoesNotExist:
-            raise ServiceException('profile not found')
-        return self.converter.handle(employer)
+            return None
+        return employer.to_entity()
