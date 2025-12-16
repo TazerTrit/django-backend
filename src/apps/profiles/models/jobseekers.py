@@ -1,10 +1,12 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from django.contrib.postgres.fields import ArrayField
 
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 
 from .base import BaseProfile
+
+from django.core.exceptions import ValidationError
 
 
 class JobSeekerProfile(BaseProfile):
@@ -29,6 +31,20 @@ class JobSeekerProfile(BaseProfile):
     allow_notifications = models.BooleanField(
         default=False,
     )
+    
+    resume = models.FileField(
+        upload_to='resumes/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(['pdf', 'doc', 'docx'])],
+        verbose_name="Резюме",
+        help_text="Только PDF, DOC, DOCX. Макс. 10 МБ",
+    )
+
+    def clean(self):
+        super().clean()
+        if self.resume and self.resume.size > 10 * 1024 * 1024:  # 10 МБ
+            raise ValidationError("Резюме не должно превышать 10 МБ")
 
     class Meta:
         ordering = ('-first_name',)
@@ -48,6 +64,7 @@ class JobSeekerProfile(BaseProfile):
             experience=self.experience,
             skills=self.skills,
             phone=self.phone,
+            resume_url=self.resume.url if self.resume else None,
         )
 
     @classmethod

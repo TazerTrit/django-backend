@@ -19,6 +19,10 @@ from src.common.filters.pagination import PaginationIn, PaginationOut
 
 from .schemas import VacancyIn, VacancyOut
 
+from src.apps.vacancies.models import Vacancy
+from src.apps.profiles.models.jobseekers import JobSeekerProfile
+from src.apps.vacancies.models import VacancyInterest
+
 router = Router(tags=['vacancies'])
 
 
@@ -78,15 +82,15 @@ def create_vacancy(
 def filter_candidates_in_vacancy(
     request: HttpRequest,
     pagination_in: Query[PaginationIn],
-    vacancy_id: int,
+    id: int,
 ) -> APIResponseSchema[ListPaginatedResponse[JobSeekerProfileOut]]:
     usecase = container.resolve(FilterCandidatesInVacancyUseCase)
     jobseeker_service = container.resolve(BaseJobSeekerService)
     total = jobseeker_service.get_total_count(
-        filters=JobSeekerFilters(vacancy_id=vacancy_id)
+        filters=JobSeekerFilters(vacancy_id=id)
     )
     candidates = usecase.execute(
-        vacancy_id=vacancy_id,
+        vacancy_id=id,
         offset=pagination_in.offset,
         limit=pagination_in.limit,
     )
@@ -100,3 +104,29 @@ def filter_candidates_in_vacancy(
     )
     response = APIResponseSchema(data=data)
     return response
+
+@router.post('/{id}/apply', response=APIResponseSchema[dict])
+def apply_to_vacancy(
+    request: HttpRequest,
+    id: int,
+    cover_letter: str = '',
+):
+    try:
+        vacancy = Vacancy.objects.get(id=id)
+    except Vacancy.DoesNotExist:
+        return HttpResponseBadRequest(content="Вакансия не найдена")
+
+    # Пока без авторизации — тестовый кандидат (заменять на ID реального кандидата из админки)
+    candidate_id = 1  # ← поменять на ID JobSeekerProfile из админки (создать тестового кандидата)
+    try:
+        candidate = JobSeekerProfile.objects.get(id=candidate_id)
+    except JobSeekerProfile.DoesNotExist:
+        return HttpResponseBadRequest(content="Кандидат не найден")
+
+    # Создаём отклик (статус 'new' по умолчанию)
+    VacancyInterest.objects.get_or_create(
+        vacancy=vacancy,
+        candidate=candidate,
+        defaults={'cover_letter': cover_letter}  # если нужно, можно добавить сопроводительное письмо
+    )
+    return APIResponseSchema(data={"message": "Отклик отправлен успешно!"})

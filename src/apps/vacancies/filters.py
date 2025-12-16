@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from pydantic import BaseModel, Field
+from ninja import FilterSchema
+from typing import Optional
 
 
 class VacancyFilters(BaseModel):
@@ -13,3 +15,5 @@ class VacancyFilters(BaseModel):
     company_name: str = ''
     salary__gte: int = 0
     salary__lte: int = 0
+    stack: Optional[str] = None         
+    relocation: Optional[bool] = None     

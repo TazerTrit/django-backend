@@ -1,4 +1,5 @@
 from ninja import Field, Schema
+from typing import Optional
 
 from src.apps.profiles.entities.jobseekers import JobSeekerEntity
 
@@ -36,6 +37,7 @@ class JobSeekerProfileOut(Schema):
     experience: int = 0
     skills: list[str]
     allow_notifications: bool = False
+    resume_url: Optional[str] = None
 
     @classmethod
     def from_entity(cls, entity: JobSeekerEntity) -> 'JobSeekerProfileOut':

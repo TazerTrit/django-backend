@@ -65,6 +65,12 @@ class ORMVacancyService(BaseVacancyService):
             query &= Q(salary__gte=filters.salary__gte)
         if filters.salary__lte:
             query &= Q(salary__lte=filters.salary__lte)
+        if filters.stack:
+            query &= Q(stack__icontains=filters.stack)
+        if filters.relocation is not None:
+            query &= Q(relocation=filters.relocation)
+        if filters.employment_type:
+            query &= Q(employment_type=filters.employment_type)
         return query
 
     def get_list(

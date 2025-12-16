@@ -6,6 +6,7 @@ from src.apps.vacancies.entities import VacancyEntity
 from src.apps.profiles.models.jobseekers import JobSeekerProfile
 from src.apps.profiles.models.employers import EmployerProfile
 from src.common.models.base import TimedBaseModel
+from django.core.mail import send_mail
 
 
 class AvailableManager(models.Manager):
@@ -14,6 +15,16 @@ class AvailableManager(models.Manager):
 
 
 class Vacancy(TimedBaseModel):
+    stack = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Technology stack (Python, React, Django и т.д.)",
+    )
+    relocation = models.BooleanField(
+        default=False,
+        verbose_name="Is relocation available",
+    )
     # Relationships
     employer = models.ForeignKey(
         EmployerProfile,
@@ -22,6 +33,7 @@ class Vacancy(TimedBaseModel):
     )
     interested_candidates = models.ManyToManyField(
         JobSeekerProfile,
+        through='VacancyInterest',
         related_name='interested_in',
         blank=True,
     )
@@ -122,3 +134,51 @@ class Vacancy(TimedBaseModel):
             created_at=self.created_at,
         )
         return entity
+    
+class VacancyInterest(models.Model):
+    STATUS_CHOICES = (
+        ('new', 'Новый отклик'),
+        ('viewed', 'Просмотрен'),
+        ('invited', 'Приглашён на собеседование'),
+        ('rejected', 'Отклонён'),
+    )
+
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(JobSeekerProfile, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('vacancy', 'candidate')
+        verbose_name = 'Отклик на вакансию'
+        verbose_name_plural = 'Отклики на вакансию'
+
+    def __str__(self):
+        return f"{self.candidate} → {self.vacancy.title} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        old_status = None
+        if self.pk:
+            old_status = VacancyInterest.objects.get(pk=self.pk).status
+        super().save(*args, **kwargs)
+
+        # Уведомление кандидату при смене статуса
+        if old_status and old_status != self.status and old_status != 'new':
+            subject = f"Обновление по вакансии \"{self.vacancy.title}\""
+            if self.status == 'invited':
+                message = f"Поздравляем! Вас пригласили на собеседование в {self.vacancy.company_name}.\nСвяжитесь с работодателем для деталей."
+            elif self.status == 'rejected':
+                message = f"К сожалению, по вакансии \"{self.vacancy.title}\" выбрали другого кандидата.\nУдачи в поиске!"
+            elif self.status == 'viewed':
+                message = f"Ваш отклик на вакансию \"{self.vacancy.title}\" просмотрен работодателем."
+            else:
+                return
+
+            send_mail(
+                subject,
+                message,
+                'no-reply@yourplatform.com',  # поменять на реальный email отправителя
+                [self.candidate.user.email],
+                fail_silently=False,
+            )

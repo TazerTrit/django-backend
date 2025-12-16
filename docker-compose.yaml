@@ -1,4 +1,4 @@
-version: "3.7"
+
 
 services:
   redis_cache:
@@ -33,6 +33,7 @@ services:
       - .env
     volumes:
       - .:/code/
+      - ./logs:/code/logs
     healthcheck:
       test: ["CMD", "celery", "status"]
       interval: 10s

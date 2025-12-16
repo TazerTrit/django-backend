@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from ninja import Field, Schema
+from typing import Optional
 from pydantic import ConfigDict
 
 from src.api.v1.profiles.employers.schemas import EmployerProfileOut
@@ -36,6 +37,9 @@ class VacancyOut(Schema):
     is_remote: bool | None = None
     location: str | None = None
     required_experience: int = 0
+    stack: Optional[str] = None
+    relocation: Optional[bool] = None
+    employment_type: Optional[str] = None
 
     @staticmethod
     def from_entity(entity: VacancyEntity) -> 'VacancyOut':
