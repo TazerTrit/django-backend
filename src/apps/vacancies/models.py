@@ -66,9 +66,19 @@ class Vacancy(TimedBaseModel):
         blank=True,
         default=0,
     )
-    required_skills = ArrayField(
-        models.CharField(max_length=30),
-        blank=False,
+    hard_skills = ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list,
+        verbose_name="Hard skills",
+        help_text="Технические навыки (Python, Django, SQL и т.д.)"
+    )
+    soft_skills = ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list,
+        verbose_name="Soft skills",
+        help_text="Мягкие навыки (коммуникация, лидерство, тайм-менеджмент)"
     )
     # Other fields
     open = models.BooleanField(
@@ -136,6 +146,10 @@ class Vacancy(TimedBaseModel):
         return entity
     
 class VacancyInterest(models.Model):
+    cover_letter = models.TextField(
+    blank=True,
+    verbose_name="Сопроводительное письмо"
+    )
     STATUS_CHOICES = (
         ('new', 'Новый отклик'),
         ('viewed', 'Просмотрен'),

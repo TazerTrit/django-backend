@@ -34,6 +34,9 @@ services:
     volumes:
       - .:/code/
       - ./logs:/code/logs
+    working_dir: /code
+    environment:
+    - PYTHONPATH=/code      
     healthcheck:
       test: ["CMD", "celery", "status"]
       interval: 10s

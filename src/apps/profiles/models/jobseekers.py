@@ -8,18 +8,28 @@ from .base import BaseProfile
 
 from django.core.exceptions import ValidationError
 
+from django.utils import timezone
+
 
 class JobSeekerProfile(BaseProfile):
     phone = models.CharField(
         max_length=25,
         blank=False,
     )
-    age = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(limit_value=18),
-            MaxValueValidator(limit_value=100),
-        ]
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Дата рождения",
+        help_text="Дата рождения (ДД.ММ.ГГГГ)"
     )
+    @property
+    def age(self):
+        if self.birth_date:
+            today = timezone.now().date()
+            age = today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+            return age
+        return None
+    
     about_me = models.TextField()
     experience = models.PositiveIntegerField(
         default=0,
@@ -59,6 +69,7 @@ class JobSeekerProfile(BaseProfile):
             first_name=self.first_name,
             last_name=self.last_name,
             email=self.email,
+            birth_date=self.birth_date,
             age=self.age,
             about_me=self.about_me,
             experience=self.experience,
@@ -75,6 +86,7 @@ class JobSeekerProfile(BaseProfile):
             last_name=entity.last_name,
             email=entity.email,
             age=entity.age,
+            birth_date=entity.birth_date,
             about_me=entity.about_me,
             experience=entity.experience,
             skills=entity.skills,

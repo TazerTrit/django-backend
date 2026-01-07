@@ -1,12 +1,11 @@
 from abc import abstractmethod
-
 from django.db import models
-
 from src.apps.users.models import CustomUser
 from src.apps.profiles.entities.base import BaseProfileEntity
 
+from src.common.models.base import TimedBaseModel
 
-class BaseProfile(models.Model):
+class BaseProfile(TimedBaseModel):
     user = models.OneToOneField(
         CustomUser,
         related_name='%(class)s_related',
@@ -20,6 +19,11 @@ class BaseProfile(models.Model):
         max_length=60,
         blank=True,
     )
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Город"
+    )
 
     class Meta:
         abstract = True
@@ -28,4 +32,5 @@ class BaseProfile(models.Model):
         return f'{self.first_name} {self.last_name}'
 
     @abstractmethod
-    def to_entity(self) -> BaseProfileEntity: ...
+    def to_entity(self) -> BaseProfileEntity:
+        ...

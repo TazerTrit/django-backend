@@ -4,15 +4,22 @@ from django.db import models
 
 from src.common.utils.time import get_elapsed_time_with_message
 
+from django.utils import timezone
+
+from datetime import datetime
+
+def get_default_now():
+    return timezone.now()
+
 
 class TimedBaseModel(models.Model):
     created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='DateTimeField, sets when object is created',
+        default=datetime.now,  # ← менять во время миграций
+        editable=False
     )
     updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text='DateTimeField, updates for every object update',
+        default=datetime.now,  # менять во время миграций
+        editable=False
     )
 
     class Meta:
